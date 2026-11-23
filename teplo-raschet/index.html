@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ТеплоРасчёт — теплотехнический расчёт по СП 50.13330.2024</title>
+  <meta name="description" content="Теплотехнический расчёт ограждающих конструкций по СП 50.13330.2024 и СП 131.13330.2025: R₀, Rпр, полы по грунту, влажностный расчёт, воздухопроницание, проёмы, kоб, отчёты.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/favicon-48.png">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ТеплоРасчёт">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#131c2b">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="app-header">
+    <button id="btn-back" class="icon-btn hidden" title="Назад к объекту" aria-label="Назад">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="brand">
+      <img class="brand-icon" src="icons/icon-192.png" alt="">
+      <h1 id="hdr-title">ТеплоРасчёт</h1>
+    </div>
+    <div class="header-actions">
+      <button id="btn-help" class="icon-btn" title="Справка: как считается" aria-label="Справка">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.6 2.2c-.7.4-1.1.8-1.1 1.8"/><circle cx="12" cy="17" r="0.5" fill="currentColor"/></svg>
+      </button>
+      <button id="btn-theme" class="icon-btn" title="Светлая/тёмная тема" aria-label="Тема">
+        <svg id="ic-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+        <svg id="ic-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="hidden"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+      </button>
+      <button id="btn-saved" class="icon-btn" title="Сохранённые объекты" aria-label="Сохранённые объекты">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <main id="view-project">
+    <section class="card">
+      <h2>Объект</h2>
+      <label class="field"><span class="field-label">Наименование</span>
+        <input id="p-name" type="text" placeholder="Например: ЖК «Северный», корпус 2">
+      </label>
+
+      <label class="field">
+        <span class="field-label">Город строительства</span>
+        <input id="city-input" type="text" placeholder="Начните вводить: Москва…" autocomplete="off">
+        <div id="city-list" class="suggest hidden"></div>
+      </label>
+      <div id="city-hint" class="hint hidden"></div>
+
+      <details class="sub" id="climate-manual">
+        <summary>Климат вручную (если города нет в базе)</summary>
+        <div class="row2">
+          <label>t пятидневки (0,92), °С <input id="t5" type="number" step="0.5"></label>
+          <label>t отп. периода (≤8 °С) <input id="tot" type="number" step="0.1"></label>
+          <label>Отопит. период ≤8 °С, сут <input id="zot" type="number" step="1"></label>
+          <label>Зона влажности
+            <select id="zone">
+              <option value="">не определена (Б)</option>
+              <option value="сухая">сухая</option>
+              <option value="нормальная">нормальная</option>
+              <option value="влажная">влажная</option>
+            </select>
+          </label>
+        </div>
+        <div class="row2">
+          <label>t отп. периода (≤10 °С) <input id="tot10" type="number" step="0.1"></label>
+          <label>Отопит. период ≤10 °С, сут <input id="zot10" type="number" step="1"></label>
+        </div>
+        <p class="hint" style="margin:0">Период ≤10 °С применяется для категории 1.2. Зона влажности — по карте прил. А СП 50.13330.2024.</p>
+      </details>
+
+      <label class="field">
+        <span class="field-label">Категория здания (таблица 3)</span>
+        <select id="building"></select>
+      </label>
+
+      <div class="row2">
+        <label>t внутреннего воздуха, °С <input id="tin" type="number" step="0.5"></label>
+        <label>Расчётная влажность, % <input id="phi" type="number" step="5" min="1" max="100"></label>
+      </div>
+      <p class="hint" id="phi-hint" style="margin:-4px 0 12px"></p>
+
+      <div class="row2">
+        <label>Отапливаемый объём Vот, м³ <input id="p-volume" type="number" step="10" placeholder="для kоб"></label>
+        <label>Высота здания H, м <input id="p-height" type="number" step="0.5" placeholder="для воздухопроницания"></label>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Конструкции</h2>
+      <ul id="constr-list"></ul>
+      <div class="btn-row" style="grid-template-columns:1fr 1fr">
+        <button id="btn-add-layered" class="btn primary">+ Конструкция</button>
+        <button id="btn-add-opening" class="btn">+ Проём</button>
+      </div>
+      <div class="btn-row" style="grid-template-columns:1fr 1fr">
+        <button id="btn-add-ground" class="btn">+ Пол по грунту</button>
+        <button id="btn-compare" class="btn">Сравнить A/B</button>
+      </div>
+    </section>
+
+    <section class="card" id="sec-kob">
+      <h2>Комплексное требование — kоб (прил. Д)</h2>
+      <div id="kob-box"></div>
+      <div class="btn-row" style="grid-template-columns:1fr 1fr 1fr">
+        <button id="btn-report" class="btn">Печать</button>
+        <button id="btn-pdf-proj" class="btn">PDF-файл</button>
+        <button id="btn-reset" class="btn danger">Сброс</button>
+      </div>
+    </section>
+  </main>
+
+  <main id="view-construction" class="hidden">
+    <section class="card">
+      <h2>Конструкция</h2>
+      <label class="field"><span class="field-label">Наименование</span>
+        <input id="c-name" type="text">
+      </label>
+      <div id="c-kind-fields"></div>
+      <label class="field" id="c-area-wrap">
+        <span class="field-label">Площадь фрагмента для kоб, м² (необязательно)</span>
+        <input id="c-area" type="number" step="0.5" placeholder="площадь всех участков этого типа">
+      </label>
+    </section>
+
+    <section class="card" id="c-layers-card">
+      <h2>Слои (изнутри → наружу)</h2>
+      <ul id="layers"></ul>
+      <button id="add-layer" class="btn primary block">+ Добавить слой</button>
+    </section>
+
+    <section class="card" id="c-uni-card">
+      <h2>Неоднородности — приведённое R (прил. Г)</h2>
+      <div id="uni-box"></div>
+    </section>
+
+    <section class="card" id="c-results">
+      <h2>Результаты</h2>
+      <div id="verdict"></div>
+      <div id="draw"></div>
+      <div id="metrics" class="metrics"></div>
+      <div id="insulation"></div>
+      <div id="warnings"></div>
+      <div id="moisture"></div>
+      <div id="airperm"></div>
+      <div id="chart"></div>
+      <div class="btn-row">
+        <button id="btn-report-c" class="btn">Печать</button>
+        <button id="btn-pdf" class="btn">PDF-файл</button>
+        <button id="btn-download" class="btn">HTML</button>
+      </div>
+    </section>
+  </main>
+
+  <main id="view-help" class="hidden">
+    <section class="card" id="help-content"></section>
+  </main>
+
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true"></div>
+  <div id="toast" class="toast hidden"></div>
+  <div id="update-banner" class="update-banner hidden">
+    Доступна новая версия программы
+    <button id="btn-update" class="btn primary" style="padding:6px 12px">Обновить</button>
+  </div>
+  <div id="report"></div>
+
+  <script src="js/vendor/jspdf.umd.min.js"></script>
+  <script type="module" src="js/app.js?v=5"></script>
+</body>
+</html>
